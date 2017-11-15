@@ -5,17 +5,12 @@ import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(e-> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if(arePermissionsEnabled()){
-                    writeToExternalStorage();
+//                    permissions granted, continue flow normally
                 }else{
                     requestWriteExternalStoragePermission();
                 }
@@ -86,20 +81,6 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
             }
-        }
-    }
-
-    private void writeToExternalStorage(){
-        File root = Environment.getExternalStorageDirectory();
-        File directory = new File(root.getAbsolutePath() + "/pathThatYouWant");
-        if(!directory.exists())
-            directory.mkdirs();
-        File file = new File(directory, "fileName.txt");
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            writer.write("this is my text here");
-        } catch (IOException e1) {
-            e1.printStackTrace();
         }
     }
 }

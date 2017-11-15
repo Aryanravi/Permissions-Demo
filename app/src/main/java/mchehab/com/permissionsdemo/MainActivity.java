@@ -28,9 +28,9 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(e-> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if(arePermissionsEnabled()){
-//                    permissions granted, continue flow normally
+        //                    permissions granted, continue flow normally
                 }else{
-                    requestWriteExternalStoragePermission();
+                    requestMultiplePermissions();
                 }
             }
         });
@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void requestWriteExternalStoragePermission(){
+    private void requestMultiplePermissions(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             List<String> remainingPermissions = new ArrayList<>();
             for (String permission : permissions) {
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
                     if(shouldShowRequestPermissionRationale(permissions[i])){
                         new AlertDialog.Builder(this)
                                 .setMessage("Your error message here")
-                                .setPositiveButton("Allow", (dialog, which) -> requestWriteExternalStoragePermission())
+                                .setPositiveButton("Allow", (dialog, which) -> requestMultiplePermissions())
                                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                                 .create()
                                 .show();

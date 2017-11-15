@@ -62,11 +62,6 @@ public class MainActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode == 101){
-            for (int grantResult : grantResults) {
-                if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                    //do something
-                }
-            }
             for(int i=0;i<grantResults.length;i++){
                 if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
                     if(shouldShowRequestPermissionRationale(permissions[i])){
@@ -80,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
             }
+            //all is good, continue flow
         }
     }
 }

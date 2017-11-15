@@ -3,8 +3,6 @@ package mchehab.com.permissionsdemo;
 import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
@@ -18,9 +16,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.security.Permission;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+
+    private String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission
+            .ACCESS_FINE_LOCATION, Manifest.permission.READ_CONTACTS};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,8 +32,7 @@ public class MainActivity extends AppCompatActivity {
         Button button = findViewById(R.id.button);
         button.setOnClickListener(e-> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if(checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-                        PackageManager.PERMISSION_GRANTED){
+                if(arePermissionsEnabled()){
                     writeToExternalStorage();
                 }else{
                     requestWriteExternalStoragePermission();
@@ -40,10 +41,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private boolean arePermissionsEnabled(){
+        for(String permission : permissions){
+            if(checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
+                return false;
+        }
+        return true;
+    }
+
     private void requestWriteExternalStoragePermission(){
-        String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(permissions, 101);
+            List<String> remainingPermissions = new ArrayList<>();
+            for (String permission : permissions) {
+                if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                    remainingPermissions.add(permission);
+                }
+            }
+            requestPermissions(remainingPermissions.toArray(new String[remainingPermissions.size()]), 101);
         }
     }
 
@@ -53,16 +68,22 @@ public class MainActivity extends AppCompatActivity {
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode == 101){
-            if(grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                writeToExternalStorage();
-            }else{
-                if(shouldShowRequestPermissionRationale(permissions[0])){
-                    new AlertDialog.Builder(this)
-                            .setMessage("Your error message here")
-                            .setPositiveButton("Allow", (dialog, which) -> requestWriteExternalStoragePermission())
-                            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                            .create()
-                            .show();
+            for (int grantResult : grantResults) {
+                if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                    //do something
+                }
+            }
+            for(int i=0;i<grantResults.length;i++){
+                if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
+                    if(shouldShowRequestPermissionRationale(permissions[i])){
+                        new AlertDialog.Builder(this)
+                                .setMessage("Your error message here")
+                                .setPositiveButton("Allow", (dialog, which) -> requestWriteExternalStoragePermission())
+                                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                                .create()
+                                .show();
+                    }
+                    return;
                 }
             }
         }

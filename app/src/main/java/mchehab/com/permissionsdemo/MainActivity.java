@@ -45,16 +45,15 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     private void requestMultiplePermissions(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            List<String> remainingPermissions = new ArrayList<>();
-            for (String permission : permissions) {
-                if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                    remainingPermissions.add(permission);
-                }
+        List<String> remainingPermissions = new ArrayList<>();
+        for (String permission : permissions) {
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                remainingPermissions.add(permission);
             }
-            requestPermissions(remainingPermissions.toArray(new String[remainingPermissions.size()]), 101);
         }
+        requestPermissions(remainingPermissions.toArray(new String[remainingPermissions.size()]), 101);
     }
 
     @TargetApi(Build.VERSION_CODES.M)

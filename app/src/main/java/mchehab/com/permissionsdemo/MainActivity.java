@@ -1,23 +1,22 @@
 package mchehab.com.permissionsdemo;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.content.pm.PackageManager;
-import android.os.Build;
+import android.content.Intent;
+import android.net.Uri;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
 
-import java.util.ArrayList;
-import java.util.List;
+import permissions.dispatcher.NeedsPermission;
+import permissions.dispatcher.OnNeverAskAgain;
+import permissions.dispatcher.OnPermissionDenied;
+import permissions.dispatcher.RuntimePermissions;
 
+@RuntimePermissions
 public class MainActivity extends AppCompatActivity {
-
-    private String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission
-            .ACCESS_FINE_LOCATION, Manifest.permission.READ_CONTACTS};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,56 +25,50 @@ public class MainActivity extends AppCompatActivity {
 
         Button button = findViewById(R.id.button);
         button.setOnClickListener(e-> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if(arePermissionsEnabled()){
-        //                    permissions granted, continue flow normally
-                }else{
-                    requestMultiplePermissions();
-                }
-            }
+            MainActivityPermissionsDispatcher.requestPermissionsWithPermissionCheck(this);
         });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private boolean arePermissionsEnabled(){
-        for(String permission : permissions){
-            if(checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED)
-                return false;
-        }
-        return true;
+    @NeedsPermission({Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission
+            .ACCESS_FINE_LOCATION, Manifest.permission.READ_CONTACTS})
+    void requestPermissions(){
+        //do whatever you want here
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    private void requestMultiplePermissions(){
-        List<String> remainingPermissions = new ArrayList<>();
-        for (String permission : permissions) {
-            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                remainingPermissions.add(permission);
-            }
-        }
-        requestPermissions(remainingPermissions.toArray(new String[remainingPermissions.size()]), 101);
-    }
-
-    @TargetApi(Build.VERSION_CODES.M)
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode == 101){
-            for(int i=0;i<grantResults.length;i++){
-                if(grantResults[i] != PackageManager.PERMISSION_GRANTED){
-                    if(shouldShowRequestPermissionRationale(permissions[i])){
-                        new AlertDialog.Builder(this)
-                                .setMessage("Your error message here")
-                                .setPositiveButton("Allow", (dialog, which) -> requestMultiplePermissions())
-                                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                                .create()
-                                .show();
-                    }
-                    return;
-                }
-            }
-            //all is good, continue flow
-        }
+        MainActivityPermissionsDispatcher.onRequestPermissionsResult(this, requestCode, grantResults);
+    }
+
+    @OnPermissionDenied({Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission
+            .ACCESS_FINE_LOCATION, Manifest.permission.READ_CONTACTS})
+    void permissionsDenied(){
+        new AlertDialog.Builder(this)
+                .setTitle("Permission denied")
+                .setMessage("Enable permissions")
+                .setPositiveButton("Allow", (dialog, which) -> MainActivityPermissionsDispatcher
+                        .requestPermissionsWithPermissionCheck(MainActivity.this))
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
+
+    @OnNeverAskAgain({Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission
+            .ACCESS_FINE_LOCATION, Manifest.permission.READ_CONTACTS})
+    void onNeverAskAgain(){
+        new AlertDialog.Builder(this)
+                .setTitle("Title")
+                .setMessage("Message")
+                .setPositiveButton("Ok", (dialog, which) -> {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                    Uri uri = Uri.fromParts("package", getPackageName(), null);
+                    intent.setData(uri);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss()).create()
+                .show();
     }
 }

@@ -6,8 +6,10 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
@@ -61,6 +63,20 @@ public class MainActivity extends AppCompatActivity {
                             .setMessage("Your error message here")
                             .setPositiveButton("Allow", (dialog, which) -> requestWriteExternalStoragePermission())
                             .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                            .create()
+                            .show();
+                }else{
+                    new AlertDialog.Builder(this)
+                            .setTitle("Error")
+                            .setMessage("Please grant permission in the apps settings")
+                            .setPositiveButton("Go to settings", (dialog, which) -> {
+                                Intent intent = new Intent();
+                                intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package", getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                            })
+                            .setNegativeButton("Cancel", ((dialog, which) -> dialog.dismiss()))
                             .create()
                             .show();
                 }
